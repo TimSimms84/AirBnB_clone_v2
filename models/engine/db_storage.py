@@ -38,22 +38,17 @@ class DBStorage:
     def all(self, cls=None):
         """Query on current database session"""
 
-        classes = {"Amenity": Amenity, "City": City,
-                   "Place": Place, "Review":
-                   Review, "State": State, "User": User}
+        classes = {City, State, User, Place, Amenity, Review}
 
         dictionary = {}
-        if cls in classes.keys():
-            # if type(cls) == str:
-            #     cls = classes[cls]
-            dic = self.__session.query(classes[cls]).all()
+        if cls in classes:
+            dic = self.__session.query(cls).all()
             for el in dic:
                 key = el.__class__.__name__ + '.' + el.id
                 dictionary[key] = el
         elif cls is None:
-            new_classes = (State, User, City, Review, Place)
             dic = []
-            for cls in new_classes:
+            for cls in classes:
                 dic += self.__session.query(cls).all()
             for el in dic:
                 key = el.__class__.__name__ + '.' + el.id
@@ -79,3 +74,8 @@ class DBStorage:
         Base.metadata.create_all(self.__engine)
         self.__session = scoped_session(sessionmaker(bind=self.__engine,
                                         expire_on_commit=False))
+
+    def close(self):
+        """call remove method on the private session attribute
+        self.__session or close on the class Session"""
+        self.__session.remove()
